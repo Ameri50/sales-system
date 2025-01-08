@@ -51,23 +51,46 @@
                 <tbody id="customer-list"></tbody>
             </table>
         </section>
+    </section>
 
-        <section id="sales-management">
-            <h2>Registro de Ventas</h2>
-            <form id="sales-form">
-                <select id="customer-select">
+    <section id="sales-management" class="sales-section">
+        <h2>Registro de Ventas</h2>
+        <form id="sales-form" class="sales-form">
+            <div class="form-group">
+                <label for="customer-select">Cliente:</label>
+                <select id="customer-select" aria-label="Seleccionar Cliente" required>
                     <option value="" disabled selected>Seleccionar Cliente</option>
                 </select>
-                <select id="product-select">
+            </div>
+
+            <div class="form-group">
+                <label for="product-select">Producto:</label>
+                <select id="product-select" aria-label="Seleccionar Producto" required>
                     <option value="" disabled selected>Seleccionar Producto</option>
                 </select>
-                <input type="number" id="product-quantity" placeholder="Cantidad" required>
-                <button type="submit">Registrar Venta</button>
-            </form>
-            <h3>Total: <span id="sale-total">0</span></h3>
-            <ul id="sales-list"></ul>
-        </section>
-    </main>
-    <script src="js/script.js"></script>
+            </div>
+
+            <div class="form-group">
+                <label for="product-quantity">Cantidad:</label>
+                <input type="number" 
+                       id="product-quantity" 
+                       placeholder="Cantidad" 
+                       min="1"
+                       required
+                       aria-label="Cantidad del producto">
+            </div>
+
+            <button type="submit" class="submit-btn" aria-label="Registrar nueva venta">
+                Registrar Venta
+            </button>
+        </form>
+
+        <div class="sales-summary">
+            <h3>Total: <span id="sale-total" aria-live="polite">0</span></h3>
+            <ul id="sales-list" class="sales-list" aria-label="Lista de ventas realizadas"></ul>
+        </div>
+    </section>
+</main>
+<script src="js/script.js"></script>
 </body>
 </html>
