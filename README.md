@@ -12,12 +12,4 @@ Imagina un documento HTML como un árbol genealógico o un esquema de jerarquía
 - El texto dentro de una etiqueta es un nodo **de texto**.
 - Los atributos de las etiquetas HTML (como `class` o `id`) son nodos **de atributo**.
 
-Aquí tienes un ejemplo sencillo en HTML:
 
-```html
-<html>
-    <body>
-        <h1>Hola Mundo</h1>
-        <p>Este es un párrafo</p>
-    </body>
-</html>
