@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Ventas</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Gestión de Ventas</h1>
+    </header>
+    <main>
+        <section id="product-management">
+            <h2>Gestión de Productos</h2>
+            <form id="product-form">
+                <input type="text" id="product-name" placeholder="Nombre del producto" required>
+                <input type="number" id="product-price" placeholder="Precio" required>
+                <input type="number" id="product-stock" placeholder="Stock inicial" required>
+                <button type="submit">Agregar Producto</button>
+            </form>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="product-list"></tbody>
+            </table>
+        </section>
+
+        <section id="customer-management">
+            <h2>Gestión de Clientes</h2>
+            <form id="customer-form">
+                <input type="text" id="customer-name" placeholder="Nombre del cliente" required>
+                <input type="email" id="customer-email" placeholder="Email del cliente" required>
+                <button type="submit">Agregar Cliente</button>
+            </form>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Compras</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="customer-list"></tbody>
+            </table>
+        </section>
+
+        <section id="sales-management">
+            <h2>Registro de Ventas</h2>
+            <form id="sales-form">
+                <select id="customer-select">
+                    <option value="" disabled selected>Seleccionar Cliente</option>
+                </select>
+                <select id="product-select">
+                    <option value="" disabled selected>Seleccionar Producto</option>
+                </select>
+                <input type="number" id="product-quantity" placeholder="Cantidad" required>
+                <button type="submit">Registrar Venta</button>
+            </form>
+            <h3>Total: <span id="sale-total">0</span></h3>
+            <ul id="sales-list"></ul>
+        </section>
+    </main>
+    <script src="js/script.js"></script>
+</body>
+</html>
