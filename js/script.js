@@ -1,107 +1,166 @@
-document.addEventListener("DOMContentLoaded", () => {
-    // Referencias de elementos
-    const productTableBody = document.getElementById("productTableBody");
-    const clientTableBody = document.getElementById("clientTableBody");
-    const editFieldName = document.getElementById("editFieldName");
-    const editFieldValue = document.getElementById("editFieldValue");
-    const saveChangesButton = document.getElementById("saveChangesButton");
+// Definición de las clases Producto y Cliente
+function Customer(name, email) {
+    this.name = name;
+    this.email = email;
+}
 
-    let currentEditItem = null;
+function Product(name, price, stock) {
+    this.name = name;
+    this.price = price;
+    this.stock = stock;
+}
 
-    // Registrar Producto
-    document.getElementById("productForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const name = document.getElementById("productName").value;
-        const price = document.getElementById("productPrice").value;
-        const stock = document.getElementById("productStock").value;
+// Referencias a los elementos del DOM
+const productForm = document.getElementById("productForm");
+const productList = document.getElementById("productList");
+const clientForm = document.getElementById("clientForm");
+const clientList = document.getElementById("clientList");
+const searchInput = document.getElementById("searchInput");
+const searchButton = document.getElementById("searchButton");
+const sortButton = document.getElementById("sortButton");
 
-        // Crear fila para el producto
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${name}</td>
-            <td>${price}</td>
-            <td>${stock}</td>
-            <td><button class="btn btn-sm btn-primary edit-btn" data-type="stock">Editar Stock</button></td>
-        `;
-        productTableBody.appendChild(row);
+// Arreglos para almacenar los productos y clientes
+const products = [];
+const customers = [];
 
-        // Limpiar formulario
-        document.getElementById("productForm").reset();
-    });
+// Manejo del formulario de productos
+productForm.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-    // Registrar Cliente
-    document.getElementById("clientForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const name = document.getElementById("clientName").value;
-        const email = document.getElementById("clientEmail").value;
+    const productName = document.getElementById("productName").value;
+    const productPrice = document.getElementById("productPrice").value;
+    const productStock = document.getElementById("productStock").value;
 
-        // Crear fila para el cliente
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${name}</td>
-            <td>${email}</td>
-            <td><button class="btn btn-sm btn-primary edit-btn" data-type="email">Editar Correo</button></td>
-        `;
-        clientTableBody.appendChild(row);
+    const newProduct = new Product(productName, productPrice, productStock);
+    products.push(newProduct);
 
-        // Limpiar formulario
-        document.getElementById("clientForm").reset();
-    });
+    const productRow = document.createElement("tr");
+    productRow.innerHTML = `
+      <td>${productName}</td>
+      <td>${productPrice}</td>
+      <td>${productStock}</td>
+      <td>
+        <button class="btn btn-sm btn-warning update-stock">Actualizar Stock</button>
+      </td>
+    `;
 
-    // Abrir Offcanvas para Editar
-    document.body.addEventListener("click", (e) => {
-        if (e.target.classList.contains("edit-btn")) {
-            const row = e.target.closest("tr");
-            currentEditItem = row; // Guardar referencia a la fila
-            const type = e.target.dataset.type; // Identificar tipo de edición
-
-            // Configurar el formulario del offcanvas
-            if (type === "stock") {
-                editFieldName.value = "Stock";
-                editFieldValue.value = row.children[2].textContent; // Obtener valor actual del stock
-            } else if (type === "email") {
-                editFieldName.value = "Correo";
-                editFieldValue.value = row.children[1].textContent; // Obtener valor actual del correo
-            }
-
-            // Mostrar el offcanvas
-            const offcanvas = new bootstrap.Offcanvas(document.getElementById("myOffcanvas"));
-            offcanvas.show();
-        }
-    });
-
-    // Guardar Cambios desde el Offcanvas
-    saveChangesButton.addEventListener("click", () => {
-        if (currentEditItem) {
-            const type = editFieldName.value; // Campo que se está editando
-            const newValue = editFieldValue.value; // Nuevo valor ingresado
-
-            // Actualizar el valor correspondiente
-            if (type === "Stock") {
-                currentEditItem.children[2].textContent = newValue; // Actualizar stock
-            } else if (type === "Correo") {
-                currentEditItem.children[1].textContent = newValue; // Actualizar correo
-            }
-
-            // Cerrar el offcanvas
-            bootstrap.Offcanvas.getInstance(document.getElementById("myOffcanvas")).hide();
-        }
-    });
-
-    // Cambiar entre pestañas de Productos y Clientes
-    document.querySelectorAll(".tab-button").forEach((button) => {
-        button.addEventListener("click", (e) => {
-            const tab = e.target.dataset.tab;
-
-            // Mostrar contenido de la pestaña seleccionada
-            document.querySelectorAll(".tab-content").forEach((content) => {
-                content.style.display = content.id === tab ? "block" : "none";
-            });
-
-            // Cambiar el estado activo del botón
-            document.querySelectorAll(".tab-button").forEach((btn) => {
-                btn.classList.toggle("active", btn === e.target);
-            });
-        });
-    });
+    productList.appendChild(productRow);
+    productForm.reset();
 });
+
+// Manejo de clic en el listado de productos (actualizar stock)
+productList.addEventListener("click", (e) => {
+    if (e.target.classList.contains("update-stock")) {
+        const row = e.target.closest("tr");
+        const stockCell = row.children[2];
+
+        const offcanvas = new bootstrap.Offcanvas(document.getElementById("offcanvasWithBothOptions"));
+        offcanvas.show();
+
+        document.getElementById("stockInput").value = stockCell.textContent;
+
+        const saveButton = document.getElementById("saveStock");
+        saveButton.onclick = () => {
+            const newStock = document.getElementById("stockInput").value;
+            stockCell.textContent = newStock;
+            offcanvas.hide();
+        };
+    }
+});
+
+// Manejo del formulario de clientes
+clientForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const clientName = document.getElementById("clientName").value;
+    const clientEmail = document.getElementById("clientEmail").value;
+
+    const newCustomer = new Customer(clientName, clientEmail);
+    customers.push(newCustomer);
+
+    const clientRow = document.createElement("tr");
+    clientRow.innerHTML = `
+      <td>${clientName}</td>
+      <td>${clientEmail}</td>
+      <td>
+        <button class="btn btn-sm btn-warning update-email">Actualizar Email</button>
+      </td>
+    `;
+
+    clientList.appendChild(clientRow);
+    clientForm.reset();
+});
+
+// Manejo de clic en el listado de clientes (actualizar email)
+clientList.addEventListener("click", (e) => {
+    if (e.target.classList.contains("update-email")) {
+        const row = e.target.closest("tr");
+        const emailCell = row.children[1];
+        const newEmail = prompt("Ingrese el nuevo email:", emailCell.textContent);
+        if (newEmail !== null) {
+            emailCell.textContent = newEmail;
+        }
+    }
+});
+
+// Función de búsqueda de productos
+const searchProducts = () => {
+    const searchTerm = searchInput.value.trim().toLowerCase(); // Obtener la palabra clave en minúsculas
+    const rows = Array.from(productList.getElementsByTagName("tr")); // Obtener todas las filas de productos
+    let found = false; // Variable para saber si encontramos algún producto
+
+    // Recorrer las filas de productos
+    rows.forEach(row => {
+        const productName = row.querySelector('td:first-child')?.textContent.toLowerCase() || ''; // Obtener el nombre del producto
+        const matches = productName.includes(searchTerm); // Comprobar si el nombre del producto incluye la palabra clave
+        row.style.display = matches ? "" : "none"; // Mostrar u ocultar la fila según si hay coincidencia
+        if (matches) found = true; // Si encontramos al menos un producto, ponemos found a true
+    });
+
+    // Feedback visual: mostrar o quitar la clase 'is-invalid' si no hay resultados
+    searchInput.classList.toggle('is-invalid', !found && searchTerm !== '');
+
+    // Crear y mostrar el mensaje de "No se encontraron productos" si no hay resultados
+    const noResultsMsg = document.getElementById('noResultsMsg') || createNoResultsMessage();
+    noResultsMsg.style.display = (!found && searchTerm !== '') ? 'block' : 'none';
+};
+
+// Crear un mensaje de "No se encontraron productos"
+const createNoResultsMessage = () => {
+    const msg = document.createElement('div');
+    msg.id = 'noResultsMsg';
+    msg.className = 'alert alert-warning mt-2';
+    msg.textContent = 'No se encontraron productos';
+    productList.parentNode.insertBefore(msg, productList.nextSibling);
+    return msg;
+};
+
+// Eventos de búsqueda
+searchButton.addEventListener('click', searchProducts); // Al hacer clic en el botón de búsqueda, llamar a searchProducts
+searchInput.addEventListener('keyup', (e) => { // Al escribir en el input, llamar a searchProducts
+    if (e.key === 'Enter') {
+        searchProducts(); // Si presionan Enter, realizar la búsqueda
+    }
+    if (searchInput.value === '') {
+        searchProducts(); // Resetear la vista si se borra el valor del input
+    }
+});
+
+
+// Funcionalidad del botón de ordenar productos por stock
+let isAscendent = true;
+
+sortButton.onclick = () => {
+    const rows = Array.from(productList.getElementsByTagName("tr"));
+    rows.sort((rowA, rowB) => {
+        const stockA = +rowA.children[2].textContent;
+        const stockB = +rowB.children[2].textContent;
+
+        return isAscendent ? stockA - stockB : stockB - stockA;
+    });
+
+    isAscendent = !isAscendent;
+
+    productList.innerHTML = ""; // Limpiar la lista existente
+    rows.forEach(row => productList.appendChild(row)); // Reagregar filas ordenadas
+};
