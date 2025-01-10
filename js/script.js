@@ -1,150 +1,107 @@
-/* Archivo Unificado: app.js */
+document.addEventListener("DOMContentLoaded", () => {
+    // Referencias de elementos
+    const productTableBody = document.getElementById("productTableBody");
+    const clientTableBody = document.getElementById("clientTableBody");
+    const editFieldName = document.getElementById("editFieldName");
+    const editFieldValue = document.getElementById("editFieldValue");
+    const saveChangesButton = document.getElementById("saveChangesButton");
 
-let sampleProducts = [
-    { name: 'Producto A', price: 100 },
-    { name: 'Producto B', price: 200 },
-    { name: 'Producto C', price: 150 },
-  ];
-  
-  function TableManager(tableId) {
-    this.table = document.getElementById(tableId);
-    this.tbody = this.table.querySelector('tbody');
-    this.headers = this.table.querySelectorAll('th[data-sort]');
-  }
-  
-  TableManager.prototype.init = function() {
-    this.headers.forEach((header) => {
-      header.addEventListener('click', () => {
-        const sortKey = header.dataset.sort;
-        const direction = header.dataset.direction === 'asc' ? 'desc' : 'asc';
-        header.dataset.direction = direction;
-        this.sort(sortKey, direction);
-      });
+    let currentEditItem = null;
+
+    // Registrar Producto
+    document.getElementById("productForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = document.getElementById("productName").value;
+        const price = document.getElementById("productPrice").value;
+        const stock = document.getElementById("productStock").value;
+
+        // Crear fila para el producto
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${name}</td>
+            <td>${price}</td>
+            <td>${stock}</td>
+            <td><button class="btn btn-sm btn-primary edit-btn" data-type="stock">Editar Stock</button></td>
+        `;
+        productTableBody.appendChild(row);
+
+        // Limpiar formulario
+        document.getElementById("productForm").reset();
     });
-  
-    const searchInput = document.querySelector('.search-input');
-    searchInput.addEventListener('input', (event) => {
-      this.search(event.target.value);
+
+    // Registrar Cliente
+    document.getElementById("clientForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = document.getElementById("clientName").value;
+        const email = document.getElementById("clientEmail").value;
+
+        // Crear fila para el cliente
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${name}</td>
+            <td>${email}</td>
+            <td><button class="btn btn-sm btn-primary edit-btn" data-type="email">Editar Correo</button></td>
+        `;
+        clientTableBody.appendChild(row);
+
+        // Limpiar formulario
+        document.getElementById("clientForm").reset();
     });
-  };
-  
-  TableManager.prototype.render = function(data) {
-    this.tbody.innerHTML = '';
-    data.forEach((item, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${item.name}</td>
-        <td>${item.price}</td>
-        <td>
-          <button class="btn btn-warning edit-btn" data-index="${index}">Editar</button>
-          <button class="btn btn-danger delete-btn" data-index="${index}">Eliminar</button>
-        </td>
-      `;
-      this.tbody.appendChild(row);
+
+    // Abrir Offcanvas para Editar
+    document.body.addEventListener("click", (e) => {
+        if (e.target.classList.contains("edit-btn")) {
+            const row = e.target.closest("tr");
+            currentEditItem = row; // Guardar referencia a la fila
+            const type = e.target.dataset.type; // Identificar tipo de edición
+
+            // Configurar el formulario del offcanvas
+            if (type === "stock") {
+                editFieldName.value = "Stock";
+                editFieldValue.value = row.children[2].textContent; // Obtener valor actual del stock
+            } else if (type === "email") {
+                editFieldName.value = "Correo";
+                editFieldValue.value = row.children[1].textContent; // Obtener valor actual del correo
+            }
+
+            // Mostrar el offcanvas
+            const offcanvas = new bootstrap.Offcanvas(document.getElementById("myOffcanvas"));
+            offcanvas.show();
+        }
     });
-  
-    this._addEventListenersToButtons();
-  };
-  
-  TableManager.prototype.sort = function(column, direction) {
-    const rows = Array.from(this.tbody.rows);
-    const multiplier = direction === 'asc' ? 1 : -1;
-  
-    rows.sort((a, b) => {
-      const aText = a.querySelector(`td:nth-child(${column === 'name' ? 1 : 2})`).textContent.trim();
-      const bText = b.querySelector(`td:nth-child(${column === 'name' ? 1 : 2})`).textContent.trim();
-      return aText.localeCompare(bText) * multiplier;
+
+    // Guardar Cambios desde el Offcanvas
+    saveChangesButton.addEventListener("click", () => {
+        if (currentEditItem) {
+            const type = editFieldName.value; // Campo que se está editando
+            const newValue = editFieldValue.value; // Nuevo valor ingresado
+
+            // Actualizar el valor correspondiente
+            if (type === "Stock") {
+                currentEditItem.children[2].textContent = newValue; // Actualizar stock
+            } else if (type === "Correo") {
+                currentEditItem.children[1].textContent = newValue; // Actualizar correo
+            }
+
+            // Cerrar el offcanvas
+            bootstrap.Offcanvas.getInstance(document.getElementById("myOffcanvas")).hide();
+        }
     });
-  
-    rows.forEach((row) => this.tbody.appendChild(row));
-  };
-  
-  TableManager.prototype.search = function(query) {
-    const rows = Array.from(this.tbody.rows);
-    rows.forEach((row) => {
-      const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
-    });
-  };
-  
-  TableManager.prototype._addEventListenersToButtons = function() {
-    const editButtons = this.table.querySelectorAll('.edit-btn');
-    const deleteButtons = this.table.querySelectorAll('.delete-btn');
-  
-    // Editar
-    editButtons.forEach((button) => {
-      button.addEventListener('click', (event) => {
-        const index = event.target.dataset.index;
-        const product = sampleProducts[index];
-        const productForm = document.getElementById('productFormContent');
-        productForm.querySelector('[name="name"]').value = product.name;
-        productForm.querySelector('[name="price"]').value = product.price;
-  
-        // Muestra el formulario con los datos para editar
-        const offcanvas = bootstrap.Offcanvas.getInstance(productForm.closest('.offcanvas'));
-        offcanvas.show();
-  
-        // Actualizar el producto
-        const submitBtn = productForm.querySelector('button[type="submit"]');
-        submitBtn.addEventListener('click', (submitEvent) => {
-          submitEvent.preventDefault();
-          const updatedProduct = {
-            name: productForm.querySelector('[name="name"]').value,
-            price: parseFloat(productForm.querySelector('[name="price"]').value),
-          };
-          sampleProducts[index] = updatedProduct;
-          this.render(sampleProducts);
-          offcanvas.hide();
+
+    // Cambiar entre pestañas de Productos y Clientes
+    document.querySelectorAll(".tab-button").forEach((button) => {
+        button.addEventListener("click", (e) => {
+            const tab = e.target.dataset.tab;
+
+            // Mostrar contenido de la pestaña seleccionada
+            document.querySelectorAll(".tab-content").forEach((content) => {
+                content.style.display = content.id === tab ? "block" : "none";
+            });
+
+            // Cambiar el estado activo del botón
+            document.querySelectorAll(".tab-button").forEach((btn) => {
+                btn.classList.toggle("active", btn === e.target);
+            });
         });
-      });
     });
-  
-    // Eliminar
-    deleteButtons.forEach((button) => {
-      button.addEventListener('click', (event) => {
-        const index = event.target.dataset.index;
-        sampleProducts.splice(index, 1); // Elimina el producto
-        this.render(sampleProducts); // Vuelve a renderizar la tabla
-      });
-    });
-  };
-  
-  function FormManager(formId, model) {
-    this.form = document.getElementById(formId);
-    this.model = model;
-    this.offcanvas = bootstrap.Offcanvas.getInstance(this.form.closest('.offcanvas'));
-  }
-  
-  FormManager.prototype.init = function() {
-    this.form.addEventListener('reset', () => {
-      this.form.querySelectorAll('input').forEach((input) => (input.value = ''));
-    });
-  };
-  
-  FormManager.prototype.getFormData = function() {
-    const data = {};
-    this.form.querySelectorAll('input').forEach((input) => {
-      data[input.name] = input.value;
-    });
-    return data;
-  };
-  
-  document.addEventListener('DOMContentLoaded', () => {
-    const productTable = new TableManager('productsTable');
-    const productForm = new FormManager('productFormContent', 'product');
-  
-    productTable.init();
-    productTable.render(sampleProducts);
-    productForm.init();
-  
-    // Agregar nuevo producto
-    productForm.form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const newProduct = productForm.getFormData();
-      sampleProducts.push(newProduct);
-      productTable.render(sampleProducts);
-      productForm.form.reset();
-      productForm.offcanvas.hide();
-    });
-  });
-  
+});
