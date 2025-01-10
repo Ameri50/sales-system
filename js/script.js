@@ -1,161 +1,150 @@
-// Variables globales
-const productForm = document.getElementById('product-form');
-const customerForm = document.getElementById('customer-form');
-const salesForm = document.getElementById('sales-form');
+/* Archivo Unificado: app.js */
 
-const productList = document.getElementById('product-list');
-const customerList = document.getElementById('customer-list');
-const salesList = document.getElementById('sales-list');
-
-const productSelect = document.getElementById('product-select');
-const customerSelect = document.getElementById('customer-select');
-const saleTotal = document.getElementById('sale-total');
-
-let products = [];
-let customers = [];
-let sales = [];
-
-// Gestión de Productos
-productForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = document.getElementById('product-name').value;
-    const price = parseFloat(document.getElementById('product-price').value);
-    const stock = parseInt(document.getElementById('product-stock').value);
-
-    if (name && price > 0 && stock > 0) {
-        const product = { name, price, stock };
-        products.push(product);
-
-        updateProductList();
-        productForm.reset();
-    } else {
-        alert('Por favor, ingresa valores válidos.');
-    }
-});
-
-function updateProductList() {
-    productList.innerHTML = '';
-    productSelect.innerHTML = '<option value="" disabled selected>Seleccionar Producto</option>';
-    products.forEach((product, index) => {
-        productList.innerHTML += `
-            <tr>
-                <td>${product.name}</td>
-                <td>${product.price.toFixed(2)}</td>
-                <td>${product.stock}</td>
-                <td>
-                    <button onclick="updateStock(${index})">Actualizar Stock</button>
-                </td>
-            </tr>
-        `;
-        productSelect.innerHTML += `<option value="${index}">${product.name}</option>`;
+let sampleProducts = [
+    { name: 'Producto A', price: 100 },
+    { name: 'Producto B', price: 200 },
+    { name: 'Producto C', price: 150 },
+  ];
+  
+  function TableManager(tableId) {
+    this.table = document.getElementById(tableId);
+    this.tbody = this.table.querySelector('tbody');
+    this.headers = this.table.querySelectorAll('th[data-sort]');
+  }
+  
+  TableManager.prototype.init = function() {
+    this.headers.forEach((header) => {
+      header.addEventListener('click', () => {
+        const sortKey = header.dataset.sort;
+        const direction = header.dataset.direction === 'asc' ? 'desc' : 'asc';
+        header.dataset.direction = direction;
+        this.sort(sortKey, direction);
+      });
     });
-}
-
-function updateStock(index) {
-    const newStock = prompt('Ingrese el nuevo stock:');
-    if (newStock !== null && !isNaN(newStock) && newStock >= 0) {
-        products[index].stock = parseInt(newStock);
-        updateProductList();
-    } else {
-        alert('Por favor, ingresa un número válido.');
-    }
-}
-
-// Gestión de Clientes
-customerForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = document.getElementById('customer-name').value;
-    const email = document.getElementById('customer-email').value;
-
-    if (name && email) {
-        const customer = { name, email, purchaseCount: 0 };
-        customers.push(customer);
-
-        updateCustomerList();
-        customerForm.reset();
-    } else {
-        alert('Por favor, completa todos los campos.');
-    }
-});
-
-function updateCustomerList() {
-    customerList.innerHTML = '';
-    customerSelect.innerHTML = '<option value="" disabled selected>Seleccionar Cliente</option>';
-    customers.forEach((customer, index) => {
-        customerList.innerHTML += `
-            <tr>
-                <td>${customer.name}</td>
-                <td>${customer.email}</td>
-                <td>${customer.purchaseCount}</td>
-                <td>
-                    <button onclick="updateEmail(${index})">Actualizar Email</button>
-                </td>
-            </tr>
-        `;
-        customerSelect.innerHTML += `<option value="${index}">${customer.name}</option>`;
+  
+    const searchInput = document.querySelector('.search-input');
+    searchInput.addEventListener('input', (event) => {
+      this.search(event.target.value);
     });
-}
-
-function updateEmail(index) {
-    const newEmail = prompt('Ingrese el nuevo email:');
-    if (newEmail) {
-        customers[index].email = newEmail;
-        updateCustomerList();
-    } else {
-        alert('Por favor, ingresa un email válido.');
-    }
-}
-
-// Registro de Ventas
-salesForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const customerIndex = customerSelect.value;
-    const productIndex = productSelect.value;
-    const quantity = parseInt(document.getElementById('product-quantity').value);
-
-    if (customerIndex && productIndex && quantity > 0) {
-        const product = products[productIndex];
-        const customer = customers[customerIndex];
-
-        if (product.stock >= quantity) {
-            // Reducir el stock
-            product.stock -= quantity;
-
-            // Incrementar contador de compras del cliente
-            customer.purchaseCount++;
-
-            // Calcular total
-            const total = product.price * quantity;
-
-            // Registrar la venta
-            const sale = {
-                customer: customer.name,
-                product: product.name,
-                quantity,
-                total,
-            };
-            sales.push(sale);
-
-            updateSalesList();
-            updateProductList();
-            updateCustomerList();
-            saleTotal.textContent = total.toFixed(2);
-        } else {
-            alert('No hay suficiente stock disponible.');
-        }
-    } else {
-        alert('Por favor, selecciona cliente, producto y cantidad válida.');
-    }
-});
-
-function updateSalesList() {
-    salesList.innerHTML = '';
-    sales.forEach((sale) => {
-        salesList.innerHTML += `
-            <li>
-                Cliente: ${sale.customer}, Producto: ${sale.product}, 
-                Cantidad: ${sale.quantity}, Total: $${sale.total.toFixed(2)}
-            </li>
-        `;
+  };
+  
+  TableManager.prototype.render = function(data) {
+    this.tbody.innerHTML = '';
+    data.forEach((item, index) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${item.name}</td>
+        <td>${item.price}</td>
+        <td>
+          <button class="btn btn-warning edit-btn" data-index="${index}">Editar</button>
+          <button class="btn btn-danger delete-btn" data-index="${index}">Eliminar</button>
+        </td>
+      `;
+      this.tbody.appendChild(row);
     });
-}
+  
+    this._addEventListenersToButtons();
+  };
+  
+  TableManager.prototype.sort = function(column, direction) {
+    const rows = Array.from(this.tbody.rows);
+    const multiplier = direction === 'asc' ? 1 : -1;
+  
+    rows.sort((a, b) => {
+      const aText = a.querySelector(`td:nth-child(${column === 'name' ? 1 : 2})`).textContent.trim();
+      const bText = b.querySelector(`td:nth-child(${column === 'name' ? 1 : 2})`).textContent.trim();
+      return aText.localeCompare(bText) * multiplier;
+    });
+  
+    rows.forEach((row) => this.tbody.appendChild(row));
+  };
+  
+  TableManager.prototype.search = function(query) {
+    const rows = Array.from(this.tbody.rows);
+    rows.forEach((row) => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
+    });
+  };
+  
+  TableManager.prototype._addEventListenersToButtons = function() {
+    const editButtons = this.table.querySelectorAll('.edit-btn');
+    const deleteButtons = this.table.querySelectorAll('.delete-btn');
+  
+    // Editar
+    editButtons.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        const index = event.target.dataset.index;
+        const product = sampleProducts[index];
+        const productForm = document.getElementById('productFormContent');
+        productForm.querySelector('[name="name"]').value = product.name;
+        productForm.querySelector('[name="price"]').value = product.price;
+  
+        // Muestra el formulario con los datos para editar
+        const offcanvas = bootstrap.Offcanvas.getInstance(productForm.closest('.offcanvas'));
+        offcanvas.show();
+  
+        // Actualizar el producto
+        const submitBtn = productForm.querySelector('button[type="submit"]');
+        submitBtn.addEventListener('click', (submitEvent) => {
+          submitEvent.preventDefault();
+          const updatedProduct = {
+            name: productForm.querySelector('[name="name"]').value,
+            price: parseFloat(productForm.querySelector('[name="price"]').value),
+          };
+          sampleProducts[index] = updatedProduct;
+          this.render(sampleProducts);
+          offcanvas.hide();
+        });
+      });
+    });
+  
+    // Eliminar
+    deleteButtons.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        const index = event.target.dataset.index;
+        sampleProducts.splice(index, 1); // Elimina el producto
+        this.render(sampleProducts); // Vuelve a renderizar la tabla
+      });
+    });
+  };
+  
+  function FormManager(formId, model) {
+    this.form = document.getElementById(formId);
+    this.model = model;
+    this.offcanvas = bootstrap.Offcanvas.getInstance(this.form.closest('.offcanvas'));
+  }
+  
+  FormManager.prototype.init = function() {
+    this.form.addEventListener('reset', () => {
+      this.form.querySelectorAll('input').forEach((input) => (input.value = ''));
+    });
+  };
+  
+  FormManager.prototype.getFormData = function() {
+    const data = {};
+    this.form.querySelectorAll('input').forEach((input) => {
+      data[input.name] = input.value;
+    });
+    return data;
+  };
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    const productTable = new TableManager('productsTable');
+    const productForm = new FormManager('productFormContent', 'product');
+  
+    productTable.init();
+    productTable.render(sampleProducts);
+    productForm.init();
+  
+    // Agregar nuevo producto
+    productForm.form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const newProduct = productForm.getFormData();
+      sampleProducts.push(newProduct);
+      productTable.render(sampleProducts);
+      productForm.form.reset();
+      productForm.offcanvas.hide();
+    });
+  });
+  
